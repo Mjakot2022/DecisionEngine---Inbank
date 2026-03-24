@@ -24,16 +24,18 @@ public class DecisionEngine {
         int period = request.getLoanPeriod();
         int creditModifier = getCreditModifier(request.getPersonalCode());
 
+        //unknown personal code or period out of limit case
         if (creditModifier <= 0 || period < MIN_PERIOD || period > MAX_PERIOD) {
             return new LoanDecision(DecisionStatus.NEGATIVE.name(), 0);
         }
 
+        //optimized formula for max amount
         int maxAmount = Math.min(creditModifier * period, MAX_APPROVABLE_AMOUNT);
 
         if (maxAmount >= MIN_APPROVABLE_AMOUNT) {
             return new LoanDecision(DecisionStatus.POSITIVE.name(), maxAmount);
         }
-
+        //search for a new period if amount less than MIN_APPROVABLE_AMOUNT
         for (int newPeriod = Math.max(period + 1, MIN_PERIOD); newPeriod <= MAX_PERIOD; newPeriod++) {
             maxAmount = Math.min(creditModifier * newPeriod, MAX_APPROVABLE_AMOUNT);
             if (maxAmount >= MIN_APPROVABLE_AMOUNT) {
@@ -44,7 +46,7 @@ public class DecisionEngine {
         return new LoanDecision(DecisionStatus.NEGATIVE.name(), 0);
     }
 
-
+    //hardcoded credit modifiers
     private int getCreditModifier(String personalCode) {
         return switch (personalCode) {
             case "49002010965" -> 0;
